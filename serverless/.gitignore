@@ -1,0 +1,20 @@
+node_modules/
+dist/
+*.js.map
+*.d.ts
+
+# CDK
+infra/cdk.out/
+infra/node_modules/
+infra/dist/
+cdk.context.json
+
+# Floci local data
+docker/floci/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store

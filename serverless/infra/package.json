@@ -1,0 +1,26 @@
+{
+  "name": "mercadoglobal-serverless-infra",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk",
+    "cdk:bootstrap": "cdklocal bootstrap",
+    "cdk:deploy": "cdklocal deploy --all --require-approval never",
+    "cdk:destroy": "cdklocal destroy --all --force",
+    "cdk:synth": "cdklocal synth",
+    "cdk:diff": "cdklocal diff"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.178.2",
+    "constructs": "10.4.2"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.178.2",
+    "aws-cdk-local": "2.19.2",
+    "esbuild": "^0.21.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.8.0",
+    "@types/node": "^20.0.0"
+  }
+}

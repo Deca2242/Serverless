@@ -1,0 +1,78 @@
+name: mercado-serverless
+
+networks:
+  mercado-network:
+    name: mercado-network
+    driver: bridge
+
+services:
+  floci:
+    image: floci/floci:latest
+    container_name: mercado-serverless-floci
+    ports:
+      - "4566:4566"
+    environment:
+      FLOCI_HOSTNAME: floci
+      FLOCI_STORAGE_MODE: hybrid
+      FLOCI_STORAGE_PERSISTENT_PATH: /data
+      FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK: mercado-network
+      FLOCI_SERVICES_LAMBDA_KEEP_ALIVE_TIMEOUT: "3600"
+    volumes:
+      - ./docker/floci:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      mercado-network:
+        aliases:
+          - s3.localhost.localstack.cloud
+          - cdk-hnb659fds-assets-000000000000-us-east-1.s3.localhost.localstack.cloud
+
+  redis:
+    image: redis:7-alpine
+    container_name: mercado-serverless-redis
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - mercado-network
+
+  cdk-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.cdk
+    container_name: mercado-serverless-cdk
+    volumes:
+      - .:/app
+    working_dir: /app/infra
+    environment:
+      AWS_ENDPOINT_URL: http://floci:4566
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      CDK_DEFAULT_ACCOUNT: "000000000000"
+      CDK_DEFAULT_REGION: us-east-1
+    depends_on:
+      floci:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "npm install --prefix /app &&
+             npm install &&
+             cdklocal bootstrap &&
+             cdklocal deploy --all --require-approval never &&
+             bash /app/scripts/seed-local.sh"
+    networks:
+      - mercado-network
