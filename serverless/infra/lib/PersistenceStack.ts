@@ -2,12 +2,6 @@ import { Stack, StackProps, RemovalPolicy } from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { Construct } from "constructs";
 
-/**
- * PersistenceStack — Define la tabla DynamoDB MercadoGlobal.
- *
- * Single-Table Design con GSI para filtrar pedidos por usuario y estado.
- * Se despliega en Floci usando `cdklocal deploy`.
- */
 export class PersistenceStack extends Stack {
   public readonly table: dynamodb.Table;
 

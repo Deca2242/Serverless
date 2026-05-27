@@ -13,6 +13,8 @@ export const handler = async (
   event: APIGatewayProxyEventV2,
 ): Promise<APIGatewayProxyResultV2> => {
   const { routeKey, pathParameters, body, queryStringParameters, rawPath } = event;
+
+
   const p = extractPathParams(routeKey, rawPath, pathParameters);
 
   try {
@@ -35,6 +37,7 @@ export const handler = async (
           const result = await catalogService.search(queryStringParameters.q);
           return okCached(result.value, result.cacheStatus);
         }
+
         {
           const result = await catalogService.listAllProducts();
           return okCached(result.value, result.cacheStatus);

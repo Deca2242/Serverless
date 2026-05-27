@@ -238,25 +238,3 @@
   color: var(--color-text);
   letter-spacing: -0.02em;
 }
-
-.checkoutBtn {
-  width: 100%;
-  padding: 12px;
-  background: var(--color-btn);
-  color: var(--color-btn-text);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background var(--duration-fast) var(--ease),
-              transform var(--duration-fast) var(--ease);
-  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
-}
-
-.checkoutBtn:hover {
-  background: var(--color-btn-hover);
-  transform: translateY(-1px);
-}

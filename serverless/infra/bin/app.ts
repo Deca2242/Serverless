@@ -26,7 +26,6 @@ coreStack.addDependency(persistenceStack);
 const apiStack = new ApiStack(app, "MercadoGlobal-Api", {
   env,
   usersFunction: coreStack.usersFunction,
-  ordersFunction: coreStack.ordersFunction,
   catalogFunction: coreStack.catalogFunction,
   cartFunction: coreStack.cartFunction,
 });

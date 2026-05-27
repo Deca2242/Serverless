@@ -1,5 +1,17 @@
+/**
+ * Redis wrapper con dos patrones:
+ * - Cache-aside (fail-open): usuarios, catálogo → getClient() + cached()
+ * - Primary store (fail-closed): carrito → getRequiredClient() + hash ops
+ *
+ * Mapa completo de bloques y consumidores: serverless/CONTEXT.md § cache.ts
+ */
 import { createClient, RedisClientType } from "redis";
 import { ServiceUnavailableError } from "./errors";
+
+// ── Bloque 1: Configuración y constantes ─────────────────────────────────────
+// CACHE_DEBUG → shared/http/responses.ts (header X-Cache)
+// CART_TTL_SECONDS → cart/repositories/cart.repository.ts (touchTtl)
+// CacheStatus, CachedResult → user/catalog services + okCached() en handlers
 
 const REDIS_URL = process.env.REDIS_URL ?? "redis://redis:6379";
 const KEY_PREFIX = process.env.REDIS_KEY_PREFIX ?? "mg";
@@ -13,10 +25,16 @@ export interface CachedResult<T> {
   value: T;
   cacheStatus: CacheStatus;
 }
+
 export const CART_TTL_SECONDS = 86400;
 
 let client: RedisClientType | undefined;
 let connecting: Promise<RedisClientType | undefined> | undefined;
+
+// ── Bloque 2: Conexión Redis (singleton lazy) ────────────────────────────────
+// connectRedis() → base compartida; del/delByPrefix también la usan (ignoran CACHE_ENABLED)
+// getClient()    → cache-aside; respeta CACHE_ENABLED; fail-open si Redis cae
+// getRequiredClient() → carrito; fail-closed (503) si Redis cae; no se importa fuera
 
 /** Always attempts to connect (used by cart primary store). */
 async function connectRedis(): Promise<RedisClientType | undefined> {
@@ -60,6 +78,10 @@ export async function getRequiredClient(): Promise<RedisClientType> {
 
 const fullKey = (key: string) => `${KEY_PREFIX}:${key}`;
 
+// ── Bloque 3: Operaciones string JSON (prefijo mg: + JSON) ───────────────────
+// get/set → solo usadas por cached(); fail-open vía getClient()
+// del     → catalog.service (invalidación manual)
+
 export async function get<T>(key: string): Promise<T | undefined> {
   const c = await getClient();
   if (!c) return undefined;
@@ -96,6 +118,11 @@ export async function del(key: string): Promise<void> {
   }
 }
 
+// ── Bloque 4: Operaciones avanzadas ──────────────────────────────────────────
+// delByPrefix → invalidate* + catalog.service (createProduct)
+// expire      → cart.repository (touchTtl)
+// hGetAll/hSet/hDel → cart.repository; hash mg:cart:{userId}, campo = productSlug
+
 export async function delByPrefix(prefix: string): Promise<void> {
   const c = await connectRedis();
   if (!c) return;
@@ -116,9 +143,7 @@ export async function expire(key: string, ttlSeconds: number): Promise<void> {
   await c.expire(fullKey(key), ttlSeconds);
 }
 
-export async function hGetAll<T>(
-  key: string,
-): Promise<Record<string, T>> {
+export async function hGetAll<T>(key: string): Promise<Record<string, T>> {
   const c = await getRequiredClient();
   const raw = await c.hGetAll(fullKey(key));
   const out: Record<string, T> = {};
@@ -138,6 +163,10 @@ export async function hDel(key: string, field: string): Promise<void> {
   await c.hDel(fullKey(key), field);
 }
 
+// ── Bloque 5: Helper cache-aside ─────────────────────────────────────────────
+// cached() → user.service, catalog.service
+// Flujo: get → HIT | fetcher → set → MISS
+
 /**
  * Cache-Aside helper. Returns cached value if present; otherwise runs fetcher,
  * stores result with the given TTL, and returns it. Fail-open on Redis errors.
@@ -156,17 +185,12 @@ export async function cached<T>(
   return { value, cacheStatus: "MISS" };
 }
 
+// ── Bloque 6: Convenciones de claves y TTL ───────────────────────────────────
+// CacheKeys → factories de nombres lógicos (fullKey añade prefijo mg:)
+// TTL       → segundos por tipo; stock 30s, categorías 900s
+
 export const CacheKeys = {
-  userProfile: (userId: string) => `user:profile:${userId}`,
   userDashboard: (userId: string) => `user:dashboard:${userId}`,
-  userAddresses: (userId: string) => `user:addresses:${userId}`,
-  userPayments: (userId: string) => `user:payments:${userId}`,
-  userOrders: (userId: string) => `user:orders:${userId}`,
-  userOrdersByStatus: (userId: string, status: string) =>
-    `user:orders:${userId}:status:${status}`,
-  orderHeader: (orderId: string) => `order:header:${orderId}`,
-  orderItems: (orderId: string) => `order:items:${orderId}`,
-  orderDetail: (orderId: string) => `order:detail:${orderId}`,
   cart: (userId: string) => `cart:${userId}`,
   catalogCategories: () => "catalog:categories",
   catalogAllProducts: () => "catalog:products:all",
@@ -177,9 +201,7 @@ export const CacheKeys = {
 };
 
 export const TTL = {
-  short: 180,
   medium: 300,
-  long: 600,
   catalogCategories: 900,
   catalogCategoryProducts: 600,
   catalogProduct: 300,
@@ -187,22 +209,9 @@ export const TTL = {
   catalogSearch: 90,
 };
 
-/** Invalidate cached lists of orders for a user (all status variants). */
-export async function invalidateUserOrders(userId: string): Promise<void> {
-  await Promise.all([
-    delByPrefix(`user:orders:${userId}`),
-    del(CacheKeys.userDashboard(userId)),
-  ]);
-}
-
-/** Invalidate a specific order's cached views (header/detail) and its owner's lists. */
-export async function invalidateOrder(orderId: string, userId: string): Promise<void> {
-  await Promise.all([
-    del(CacheKeys.orderHeader(orderId)),
-    del(CacheKeys.orderDetail(orderId)),
-    invalidateUserOrders(userId),
-  ]);
-}
+// ── Bloque 7: Invalidación ───────────────────────────────────────────────────
+// invalidateCatalogProduct → catalog.service (updateStock, createProduct)
+// invalidateCatalogCategories → catalog.service (createCategory, createProduct)
 
 export async function invalidateCatalogProduct(
   slug: string,

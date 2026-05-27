@@ -9,12 +9,8 @@ interface CoreStackProps extends StackProps {
   table: dynamodb.Table;
 }
 
-/**
- * CoreStack — Define las funciones Lambda para users, orders, catalog y cart.
- */
 export class CoreStack extends Stack {
   public readonly usersFunction: NodejsFunction;
-  public readonly ordersFunction: NodejsFunction;
   public readonly catalogFunction: NodejsFunction;
   public readonly cartFunction: NodejsFunction;
 
@@ -34,6 +30,7 @@ export class CoreStack extends Stack {
       CACHE_DEBUG: process.env.CACHE_DEBUG ?? "false",
     };
 
+    //Config de empaquetado
     const commonBundling = {
       externalModules: [],
       minify: false,
@@ -57,13 +54,6 @@ export class CoreStack extends Stack {
       description: "Handles all /users/... endpoints",
     });
 
-    this.ordersFunction = new NodejsFunction(this, "OrdersFunction", {
-      ...lambdaDefaults,
-      functionName: "mercadoglobal-orders",
-      entry: path.join(__dirname, "../../lambdas/orders/handler.ts"),
-      description: "Handles all /orders/... endpoints",
-    });
-
     this.catalogFunction = new NodejsFunction(this, "CatalogFunction", {
       ...lambdaDefaults,
       functionName: "mercadoglobal-catalog",
@@ -75,11 +65,10 @@ export class CoreStack extends Stack {
       ...lambdaDefaults,
       functionName: "mercadoglobal-cart",
       entry: path.join(__dirname, "../../lambdas/cart/handler.ts"),
-      description: "Handles cart in Redis + checkout",
+      description: "Handles cart in Redis",
     });
 
     table.grantReadWriteData(this.usersFunction);
-    table.grantReadWriteData(this.ordersFunction);
     table.grantReadWriteData(this.catalogFunction);
     table.grantReadWriteData(this.cartFunction);
   }

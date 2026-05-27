@@ -80,7 +80,7 @@ export interface Product {
   categorySlug: string;
 }
 
-/** Product enriched with stock for list/detail UI responses. */
+
 export interface ProductListItem extends Product {
   stock: number;
 }

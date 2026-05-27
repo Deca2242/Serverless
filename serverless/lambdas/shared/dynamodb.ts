@@ -25,7 +25,7 @@ export const TABLE_NAME = process.env.TABLE_NAME ?? "MercadoGlobal";
 
 export const GSI1_NAME = "GSI1-UserStatus-Date";
 
-/** ISO-like timestamp for GSI1SK (order sort key). */
+
 export function normalizeOrderDate(date: string): string {
   return date.substring(0, 19) + "Z";
 }

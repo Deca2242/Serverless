@@ -18,10 +18,12 @@ import {
   CreateProductSchema,
   UpdateStockSchema,
 } from "../schemas";
+
 import { CatalogRepository } from "../repositories/catalog.repository";
 
+
 export class CatalogService {
-  constructor(private readonly repo: CatalogRepository) {}
+  constructor(private readonly repo: CatalogRepository) { }
 
   private searchHash(query: string): string {
     return createHash("sha256").update(query.toLowerCase().trim()).digest("hex").slice(0, 16);
