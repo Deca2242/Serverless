@@ -43,7 +43,6 @@ El objetivo es exponer una API REST que alimenta la pantalla EcoCart:
 | Popup usuario + dirección | `GET /users/{userId}/dashboard` |
 | Badge del carrito | `GET /cart/{userId}` |
 | Botón "Añadir al Carrito" | `POST /cart/{userId}/items` |
-| Checkout | `POST /cart/{userId}/checkout` |
 
 ### Stack tecnológico
 
@@ -64,7 +63,6 @@ El objetivo es exponer una API REST que alimenta la pantalla EcoCart:
 |---|---|
 | ✅ | API REST completa (catálogo, usuarios, carrito, pedidos) |
 | ✅ | Cache Redis cache-aside + carrito en Redis |
-| ✅ | Checkout transaccional (pedido + descuento stock atómico) |
 | ✅ | Seed demo alineado al mockup |
 | ✅ | Script de verificación automatizada |
 | ⬜ | Frontend React/Vite |
@@ -131,7 +129,7 @@ serverless/
 | Archivo | Para qué sirve |
 |---|---|
 | [`README.md`](README.md) | Comandos copy-paste: `docker compose up`, obtener `API_ID`, curls, troubleshooting |
-| [`GUIA-PROYECTO.md`](GUIA-PROYECTO.md) | Explicación profunda de flujos (home, carrito, checkout, pedidos) |
+| [`GUIA-PROYECTO.md`](GUIA-PROYECTO.md) | Explicación profunda de flujos (home, carrito, pedidos) |
 | [`CONTEXT.md`](CONTEXT.md) | Tabla mockup→endpoint→Redis key; leer primero si tienes prisa |
 | [`docker-compose.yml`](docker-compose.yml) | Define 3 servicios: Floci, Redis, CDK one-shot |
 | [`Dockerfile.cdk`](Dockerfile.cdk) | Node 20 + AWS CLI v2 + `aws-cdk` + `cdklocal` + esbuild |
@@ -500,7 +498,7 @@ parseQuery(schema, params) // query strings
 |---|---|---|
 | `NotFoundError` | 404 | Recurso no existe |
 | `ValidationError` | 400 | Body/query inválido |
-| `ConflictError` | 409 | Stock insuficiente, checkout fallido |
+| `ConflictError` | 409 | Stock insuficiente |
 | `ServiceUnavailableError` | 503 | Redis caído (carrito) |
 
 `buildErrorResponse(err)` — convierte cualquier error a `{ statusCode, body: { error } }`.
@@ -631,17 +629,8 @@ TTL:   24 h (renovado en cada modificación)
 | PATCH | `/cart/{userId}/items/{slug}` | Cambia cantidad |
 | DELETE | `/cart/{userId}/items/{slug}` | HDEL item |
 | DELETE | `/cart/{userId}` | DEL clave (vaciar) |
-| POST | `/cart/{userId}/checkout` | TransactWrite DynamoDB + borra carrito |
 
-**Dependencia cross-module:** `CartService` usa `CatalogRepository.findProductWithStock()` para validar existencia y stock antes de agregar o hacer checkout.
-
-**Checkout** ([`checkout.repository.ts`](lambdas/cart/repositories/checkout.repository.ts)) — una sola `TransactWrite`:
-
-1. Put `ORDER#{id}` / `#METADATA` (status pending)
-2. Put referencia en `USER#{userId}`
-3. Por cada item: Put `ITEM#{slug}` + Update `#STOCK` con condición `qty >= :qty`
-
-Si el stock cambió entre agregar al carrito y checkout → transacción cancelada → **409 Conflict**.
+**Dependencia cross-module:** `CartService` usa `CatalogRepository.findProductWithStock()` para validar existencia y stock antes de agregar al carrito.
 
 ### 8.4 Orders — [`lambdas/orders/`](lambdas/orders/)
 
@@ -707,8 +696,6 @@ Todas pasan por [`parseBody()`](lambdas/shared/validation.ts) en el service o ha
 - `qty`: entero positivo
 
 **UpdateCartItemSchema:** `{ "qty": 2 }`
-
-**CheckoutSchema:** `{ "shippingAddress": "Calle 100 # 12-34, Bogotá" }`
 
 ### Orders — [`lambdas/orders/schemas.ts`](lambdas/orders/schemas.ts)
 
@@ -844,20 +831,6 @@ Body: {"productSlug":"telefono-x100","qty":1}
 ```
 
 Refrescar badge: `GET /cart/usr-jgarcia-001`.
-
-### 11.5 Checkout
-
-```
-POST {BASE}/cart/usr-jgarcia-001/checkout
-Body: {"shippingAddress":"Calle 100 # 12 - 34, Apto 501, Bogota, Colombia"}
-
-1. Lee carrito Redis
-2. Re-valida stock de cada item
-3. TransactWrite DynamoDB (pedido + refs + items + stock -= qty)
-4. Invalida cache catálogo (stock cambió) y pedidos usuario
-5. DEL carrito Redis
-6. Response: { orderId, total, status: "pending" }
-```
 
 ---
 
