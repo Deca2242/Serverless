@@ -1,0 +1,100 @@
+.root {
+  position: relative;
+}
+
+.avatar {
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 100%);
+  border: none;
+  border-radius: var(--radius-pill);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--duration-fast) var(--ease),
+              box-shadow var(--duration-fast) var(--ease);
+  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.3);
+}
+
+.avatar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+}
+
+.avatarIcon {
+  width: 18px;
+  height: 18px;
+  color: #ffffff;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 280px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-md);
+  z-index: 100;
+  color: var(--color-text);
+  animation: popoverIn 0.2s var(--ease);
+}
+
+@keyframes popoverIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.greeting {
+  font-size: 14px;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.greeting strong {
+  color: var(--color-brand-dark);
+}
+
+.address {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-md);
+  line-height: 1.6;
+  background: var(--color-bg-alt);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+.addressLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.addressText {
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.logout {
+  font-size: 13px;
+  color: var(--color-danger);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  width: 100%;
+  transition: background var(--duration-fast) var(--ease);
+}
+
+.logout:hover {
+  background: var(--color-danger-bg);
+}

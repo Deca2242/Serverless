@@ -1,0 +1,72 @@
+:root {
+  /* ── Marca ───────────────────────────────────────────────── */
+  --color-brand: #16a34a;          /* verde más vivo */
+  --color-brand-dark: #15803d;
+  --color-brand-light: #22c55e;
+  --color-brand-bg: #f0fdf4;
+  --color-brand-border: #bbf7d0;
+
+  /* ── Acción / CTA ───────────────────────────────────────── */
+  --color-btn: #2563eb;            /* azul indigo moderno */
+  --color-btn-hover: #1d4ed8;
+  --color-btn-active: #1e40af;
+  --color-btn-text: #ffffff;
+
+  /* ── Neutrales (escala tailwind-like) ───────────────────── */
+  --color-bg: #f8fafc;             /* gris muy claro y limpio */
+  --color-bg-alt: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+  --color-text-light: #94a3b8;
+
+  /* ── Estado ─────────────────────────────────────────────── */
+  --color-success: #16a34a;
+  --color-success-bg: #f0fdf4;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fffbeb;
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
+
+  /* ── Header / Sidebar ──────────────────────────────────── */
+  --color-header-bg: #ffffff;
+  --color-sidebar-bg: #ffffff;
+
+  /* ── Badge carrito ─────────────────────────────────────── */
+  --color-badge: #dc2626;
+  --color-badge-text: #ffffff;
+
+  /* ── Spacing (4px scale) ───────────────────────────────── */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* ── Radius ────────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* ── Sombras (escalonadas, suaves) ─────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-popover: 0 12px 32px rgba(15, 23, 42, 0.16);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 10px 25px rgba(15, 23, 42, 0.10), 0 4px 10px rgba(15, 23, 42, 0.06);
+
+  /* ── Transiciones ──────────────────────────────────────── */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 0.15s;
+  --duration-base: 0.25s;
+
+  /* ── Sizes ─────────────────────────────────────────────── */
+  --header-height: 64px;
+  --sidebar-width: 220px;
+  --footer-height: 48px;
+}
