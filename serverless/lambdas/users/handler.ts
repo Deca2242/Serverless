@@ -2,7 +2,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda
 
 import { extractPathParams } from "../shared/dynamodb";
 import { buildErrorResponse } from "../shared/errors";
-import { CREATED, NO_CONTENT, OK } from "../shared/http/responses";
+import { CREATED, NO_CONTENT, OK, okCached } from "../shared/http/responses";
 import { UserRepository } from "./repositories/user.repository";
 import { UserService } from "./services/user.service";
 
@@ -23,8 +23,10 @@ export const handler = async (
       case "GET /users/{userId}/profile":
         return OK(await userService.getProfile(p.userId!));
 
-      case "GET /users/{userId}/dashboard":
-        return OK(await userService.getDashboard(p.userId!));
+      case "GET /users/{userId}/dashboard": {
+        const result = await userService.getDashboard(p.userId!);
+        return okCached(result.value, result.cacheStatus);
+      }
 
       case "GET /users/{userId}/addresses":
         return OK(await userService.listAddresses(p.userId!));
@@ -47,7 +49,7 @@ export const handler = async (
         return NO_CONTENT();
 
       case "GET /users/{userId}/orders":
-        return OK(await userService.listOrders(p.userId!, queryStringParameters?.status));
+        return OK(await userService.listOrders(p.userId!, queryStringParameters ?? {}));
 
       default:
         return { statusCode: 404, body: JSON.stringify({ error: "Route not found" }) };

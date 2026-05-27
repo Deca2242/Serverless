@@ -4,7 +4,7 @@ import {
   TransactWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
 
-import { getDocClient, TABLE_NAME, Keys } from "../../shared/dynamodb";
+import { getDocClient, TABLE_NAME, Keys, normalizeOrderDate, gsi1UserStatusKey } from "../../shared/dynamodb";
 import type { Order, OrderDetail, OrderItem } from "../../shared/models";
 import { itemToOrderItem, itemToOrderMetadata } from "../mappers";
 
@@ -51,7 +51,7 @@ export class OrderRepository {
 
   async createOrder(data: CreateOrderData): Promise<void> {
     const { orderId, userId, date, shippingAddress, status, total, items } = data;
-    const dateZ = date.substring(0, 19) + "Z";
+    const dateZ = normalizeOrderDate(date);
 
     await getDocClient().send(
       new TransactWriteCommand({
@@ -78,7 +78,7 @@ export class OrderRepository {
                 status,
                 total,
                 shippingAddress,
-                GSI1PK: `USER#${userId}#STATUS#${status}`,
+                GSI1PK: gsi1UserStatusKey(userId, status),
                 GSI1SK: dateZ,
               },
             },
@@ -126,7 +126,7 @@ export class OrderRepository {
               ExpressionAttributeNames: { "#s": "status" },
               ExpressionAttributeValues: {
                 ":s": newStatus,
-                ":gsi1pk": `USER#${userId}#STATUS#${newStatus}`,
+                ":gsi1pk": gsi1UserStatusKey(userId, newStatus),
               },
             },
           },

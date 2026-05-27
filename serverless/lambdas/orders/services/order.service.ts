@@ -64,21 +64,24 @@ export class OrderService {
   }
 
   async getHeader(orderId: string): Promise<Order> {
-    return cached(CacheKeys.orderHeader(orderId), TTL.medium, () =>
+    const { value } = await cached(CacheKeys.orderHeader(orderId), TTL.medium, () =>
       this.fetchHeader(orderId),
     );
+    return value;
   }
 
   async listItems(orderId: string): Promise<OrderItem[]> {
-    return cached(CacheKeys.orderItems(orderId), TTL.long, () =>
+    const { value } = await cached(CacheKeys.orderItems(orderId), TTL.long, () =>
       this.fetchItems(orderId),
     );
+    return value;
   }
 
   async getFullDetail(orderId: string): Promise<OrderDetail> {
-    return cached(CacheKeys.orderDetail(orderId), TTL.medium, () =>
+    const { value } = await cached(CacheKeys.orderDetail(orderId), TTL.medium, () =>
       this.fetchDetail(orderId),
     );
+    return value;
   }
 
   async updateStatus(

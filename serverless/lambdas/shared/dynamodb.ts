@@ -23,6 +23,21 @@ export function getDocClient(): DynamoDBDocumentClient {
 
 export const TABLE_NAME = process.env.TABLE_NAME ?? "MercadoGlobal";
 
+export const GSI1_NAME = "GSI1-UserStatus-Date";
+
+/** ISO-like timestamp for GSI1SK (order sort key). */
+export function normalizeOrderDate(date: string): string {
+  return date.substring(0, 19) + "Z";
+}
+
+export function gsi1UserStatusKey(userId: string, status: string): string {
+  return `USER#${userId}#STATUS#${status}`;
+}
+
+export function gsi1CategoryKey(slug: string): string {
+  return `CATEGORY#${slug}`;
+}
+
 // ─── Key helpers ────────────────────────────────────────────────────────────
 
 export const Keys = {
@@ -39,7 +54,7 @@ export const Keys = {
     SK: `PAYMENT#${paymentId}`,
   }),
   orderRef: (userId: string, date: string, orderId: string) => {
-    const dateZ = date.substring(0, 19) + "Z";
+    const dateZ = normalizeOrderDate(date);
     return {
       PK: `USER#${userId}`,
       SK: `ORDER#${dateZ}#${orderId}`,

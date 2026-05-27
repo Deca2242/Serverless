@@ -37,6 +37,7 @@ export class ApiStack extends Stack {
       },
     });
 
+    // Integracion entre gateway y lambdas
     const usersIntegration = new HttpLambdaIntegration("UsersIntegration", usersFunction);
     const ordersIntegration = new HttpLambdaIntegration("OrdersIntegration", ordersFunction);
     const catalogIntegration = new HttpLambdaIntegration("CatalogIntegration", catalogFunction);

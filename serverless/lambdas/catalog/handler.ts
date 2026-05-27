@@ -2,7 +2,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda
 
 import { extractPathParams } from "../shared/dynamodb";
 import { buildErrorResponse } from "../shared/errors";
-import { CREATED, OK } from "../shared/http/responses";
+import { CREATED, OK, okCached } from "../shared/http/responses";
 import { CatalogRepository } from "./repositories/catalog.repository";
 import { CatalogService } from "./services/catalog.service";
 
@@ -17,20 +17,28 @@ export const handler = async (
 
   try {
     switch (routeKey) {
-      case "GET /categories":
-        return OK(await catalogService.listCategories());
+      case "GET /categories": {
+        const result = await catalogService.listCategories();
+        return okCached(result.value, result.cacheStatus);
+      }
 
       case "POST /categories":
         return CREATED(await catalogService.createCategory(body));
 
-      case "GET /categories/{slug}/products":
-        return OK(await catalogService.listProductsByCategory(p.slug!));
+      case "GET /categories/{slug}/products": {
+        const result = await catalogService.listProductsByCategory(p.slug!);
+        return okCached(result.value, result.cacheStatus);
+      }
 
       case "GET /products":
         if (queryStringParameters?.q?.trim()) {
-          return OK(await catalogService.search(queryStringParameters.q));
+          const result = await catalogService.search(queryStringParameters.q);
+          return okCached(result.value, result.cacheStatus);
         }
-        return OK(await catalogService.listAllProducts());
+        {
+          const result = await catalogService.listAllProducts();
+          return okCached(result.value, result.cacheStatus);
+        }
 
       case "GET /products/{slug}":
         return OK(await catalogService.getProduct(p.slug!));

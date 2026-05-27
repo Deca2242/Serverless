@@ -19,5 +19,6 @@
     "dist",
     "infra/cdk.out",
     "infra/node_modules"
-  ]
+  ],
+  "include": ["lambdas/**/*"]
 }

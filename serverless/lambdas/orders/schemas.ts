@@ -10,7 +10,7 @@ export const OrderItemInputSchema = z.object({
 
 export const CreateOrderSchema = z.object({
   order: z.object({
-    userId: z.string().uuid(),
+    userId: z.string().min(1),
     shippingAddress: z.string().min(1),
   }),
   items: z.array(OrderItemInputSchema).min(1),

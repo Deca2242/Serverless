@@ -31,6 +31,7 @@ export class CoreStack extends Stack {
       REDIS_KEY_PREFIX: process.env.REDIS_KEY_PREFIX ?? "mg",
       CACHE_ENABLED: process.env.CACHE_ENABLED ?? "true",
       CACHE_TTL_SECONDS: process.env.CACHE_TTL_SECONDS ?? "300",
+      CACHE_DEBUG: process.env.CACHE_DEBUG ?? "false",
     };
 
     const commonBundling = {

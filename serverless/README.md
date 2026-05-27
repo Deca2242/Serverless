@@ -1,5 +1,6 @@
 # MercadoGlobal Serverless
 
+> **Tutorial completo (carpeta por carpeta):** ver [TUTORIAL-COMPLETO.md](./TUTORIAL-COMPLETO.md)
 > **Guía didáctica:** ver [GUIA-PROYECTO.md](./GUIA-PROYECTO.md) para una explicación paso a paso del estado actual, arquitectura y flujos de negocio.
 
 Backend serverless de **EcoCart** usando AWS Lambda + API Gateway HTTP API + DynamoDB + Redis, desplegado localmente con [Floci](https://github.com/floci-io/floci) y AWS CDK.
@@ -95,10 +96,11 @@ http://localhost:4566/restapis/267d20a04a/$default/_user_request_/products
 
 > **Postman:** codifica `$` como `%24` → `%24default` en lugar de `$default`.
 
-> **Frontend (Vite/React):** guarda la base en `.env.local`:
+> **Frontend (Vite/React):** copia [`front/.env.local.example`](../front/.env.local.example) a `front/.env.local` y define el API ID de Floci:
 > ```env
-> VITE_API_BASE=http://localhost:4566/restapis/TU_API_ID/$default/_user_request_
+> VITE_API_ID=TU_API_ID
 > ```
+> El frontend usa el proxy de Vite (`/api → Floci`); no necesitas pegar la URL completa en el navegador.
 
 Script todo-en-uno (copiar y pegar):
 
@@ -114,6 +116,23 @@ echo "BASE=$BASE"
 ```
 
 ### 5. Verificar que el backend responde
+
+**Verificación automatizada (recomendado):**
+
+```bash
+export AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1
+bash scripts/verify-ecocart.sh
+```
+
+El script valida endpoints EcoCart, flujo de carrito, claves Redis (`mg:catalog:*`) e invalidación de cache. Con `CACHE_DEBUG=true` (activo en `docker-compose.yml` local) también comprueba el header `X-Cache: HIT` en la segunda lectura de `/categories`.
+
+Si cambiaste código de Lambdas y el script falla en cache o validación, redeploy:
+
+```bash
+cd infra && cdklocal deploy --all --require-approval never
+```
+
+**Comprobación manual rápida:**
 
 ```bash
 curl -s "$BASE/categories" | head -c 200
@@ -184,7 +203,7 @@ Pago demo: tarjeta credit, last4 `4242`
 | Mochila de Viaje | `mochila-viaje` | 180.000 | 20 |
 | Camiseta Algodón Hombre | `camiseta-algodon-hombre` | 89.000 | 30 |
 
-Imágenes: cada producto tiene `imageUrl` apuntando a placeholders (`placehold.co`). No hay bucket S3 de productos aún.
+Imágenes: cada producto tiene `imageUrl` apuntando a URLs de Unsplash (`images.unsplash.com`). No hay bucket S3 de productos aún.
 
 ### Pedidos demo (Luisa)
 
@@ -228,11 +247,13 @@ URL base: `{BASE}/{ruta}` — ver sección [Obtener el API ID](#4-obtener-el-api
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/orders` | Crear pedido |
+| POST | `/orders` | Crear pedido (admin; **no descuenta stock**) |
 | GET | `/orders/{orderId}` | Cabecera del pedido |
 | GET | `/orders/{orderId}/items` | Items del pedido |
 | GET | `/orders/{orderId}/detail` | Detalle completo |
 | PATCH | `/orders/{orderId}/status` | Actualizar estado |
+
+> **Dos caminos para crear pedidos:** el flujo de la tienda usa `POST /cart/{userId}/checkout`, que crea el pedido y **descuenta stock** en una transacción DynamoDB. `POST /orders` crea pedidos directamente (útil para datos demo o admin) pero **no modifica el inventario**. Para la UI EcoCart, usa siempre checkout.
 
 ### Catálogo (EcoCart)
 
@@ -304,14 +325,14 @@ curl "$BASE/orders/ORD-555/detail"
 ## Conectar un frontend
 
 1. Backend corriendo (`docker compose up`).
-2. Obtener `API_ID` y definir `VITE_API_BASE` (o equivalente).
-3. Llamar endpoints con `fetch` / axios — CORS ya permite `*` ([ApiStack.ts](./infra/lib/ApiStack.ts)).
+2. Obtener `API_ID` y definir `VITE_API_ID` en `front/.env.local` (ver [`front/README.md`](../front/README.md)).
+3. Arrancar el frontend con `npm run dev` — Vite proxya `/api` hacia Floci.
 4. Usuario demo hardcodeado: `usr-jgarcia-001` (no hay auth aún).
 
-Ejemplo mínimo:
+Ejemplo mínimo (desde el proxy de Vite en dev):
 
 ```typescript
-const res = await fetch(`${import.meta.env.VITE_API_BASE}/products`);
+const res = await fetch("/api/products");
 const products = await res.json();
 // products[].imageUrl, .stock, .price, .slug
 ```

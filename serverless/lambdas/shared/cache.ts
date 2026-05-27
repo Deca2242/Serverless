@@ -5,6 +5,14 @@ const REDIS_URL = process.env.REDIS_URL ?? "redis://redis:6379";
 const KEY_PREFIX = process.env.REDIS_KEY_PREFIX ?? "mg";
 const DEFAULT_TTL = Number(process.env.CACHE_TTL_SECONDS ?? 300);
 const CACHE_ENABLED = (process.env.CACHE_ENABLED ?? "true").toLowerCase() !== "false";
+export const CACHE_DEBUG = (process.env.CACHE_DEBUG ?? "false").toLowerCase() === "true";
+
+export type CacheStatus = "HIT" | "MISS";
+
+export interface CachedResult<T> {
+  value: T;
+  cacheStatus: CacheStatus;
+}
 export const CART_TTL_SECONDS = 86400;
 
 let client: RedisClientType | undefined;
@@ -138,14 +146,14 @@ export async function cached<T>(
   key: string,
   ttlSeconds: number,
   fetcher: () => Promise<T>,
-): Promise<T> {
+): Promise<CachedResult<T>> {
   const hit = await get<T>(key);
-  if (hit !== undefined) return hit;
+  if (hit !== undefined) return { value: hit, cacheStatus: "HIT" };
   const value = await fetcher();
   if (value !== undefined && value !== null) {
     await set(key, value, ttlSeconds);
   }
-  return value;
+  return { value, cacheStatus: "MISS" };
 }
 
 export const CacheKeys = {
@@ -178,16 +186,6 @@ export const TTL = {
   catalogStock: 30,
   catalogSearch: 90,
 };
-
-/** Invalidate everything tied to a user profile/sub-resource. */
-export async function invalidateUser(userId: string): Promise<void> {
-  await Promise.all([
-    del(CacheKeys.userProfile(userId)),
-    del(CacheKeys.userAddresses(userId)),
-    del(CacheKeys.userPayments(userId)),
-    del(CacheKeys.userDashboard(userId)),
-  ]);
-}
 
 /** Invalidate cached lists of orders for a user (all status variants). */
 export async function invalidateUserOrders(userId: string): Promise<void> {

@@ -7,7 +7,7 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 
-import { getDocClient, TABLE_NAME, Keys } from "../../shared/dynamodb";
+import { getDocClient, TABLE_NAME, Keys, GSI1_NAME, gsi1CategoryKey } from "../../shared/dynamodb";
 import type { Category, Product, ProductListItem, Stock } from "../../shared/models";
 import {
   itemToCategory,
@@ -75,10 +75,10 @@ export class CatalogRepository {
     const res = await getDocClient().send(
       new QueryCommand({
         TableName: TABLE_NAME,
-        IndexName: "GSI1-UserStatus-Date",
+        IndexName: GSI1_NAME,
         KeyConditionExpression: "GSI1PK = :gsi1pk",
         ExpressionAttributeValues: {
-          ":gsi1pk": `CATEGORY#${categorySlug}`,
+          ":gsi1pk": gsi1CategoryKey(categorySlug),
         },
       }),
     );
@@ -178,7 +178,7 @@ export class CatalogRepository {
           name,
           price,
           categorySlug,
-          GSI1PK: `CATEGORY#${categorySlug}`,
+          GSI1PK: gsi1CategoryKey(categorySlug),
           GSI1SK: `PRODUCT#${name}`,
           ...(description ? { description } : {}),
           ...(imageUrl ? { imageUrl } : {}),

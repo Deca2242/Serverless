@@ -106,7 +106,7 @@ $AWS_CMD dynamodb put-item --table-name "$TABLE" --item '{
   "name": {"S": "Telefono Inteligente X100"},
   "price": {"N": "850000"},
   "description": {"S": "Smartphone de ultima generacion con pantalla AMOLED"},
-  "imageUrl": {"S": "https://placehold.co/300x300?text=Telefono+X100"},
+  "imageUrl": {"S": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop"},
   "categorySlug": {"S": "electronica"},
   "GSI1PK": {"S": "CATEGORY#electronica"},
   "GSI1SK": {"S": "PRODUCT#Telefono Inteligente X100"}
@@ -124,7 +124,7 @@ $AWS_CMD dynamodb put-item --table-name "$TABLE" --item '{
   "name": {"S": "Portatil WorkPro 15"},
   "price": {"N": "3200000"},
   "description": {"S": "Laptop profesional 15 pulgadas, 16GB RAM"},
-  "imageUrl": {"S": "https://placehold.co/300x300?text=WorkPro+15"},
+  "imageUrl": {"S": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop"},
   "categorySlug": {"S": "electronica"},
   "GSI1PK": {"S": "CATEGORY#electronica"},
   "GSI1SK": {"S": "PRODUCT#Portatil WorkPro 15"}
@@ -142,7 +142,7 @@ $AWS_CMD dynamodb put-item --table-name "$TABLE" --item '{
   "name": {"S": "Audifonos Bluetooth Z5"},
   "price": {"N": "420000"},
   "description": {"S": "Audifonos inalambricos con cancelacion de ruido"},
-  "imageUrl": {"S": "https://placehold.co/300x300?text=Audifonos+Z5"},
+  "imageUrl": {"S": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop"},
   "categorySlug": {"S": "electronica"},
   "GSI1PK": {"S": "CATEGORY#electronica"},
   "GSI1SK": {"S": "PRODUCT#Audifonos Bluetooth Z5"}
@@ -160,7 +160,7 @@ $AWS_CMD dynamodb put-item --table-name "$TABLE" --item '{
   "name": {"S": "Smartwatch FitTrack"},
   "price": {"N": "650000"},
   "description": {"S": "Reloj inteligente con monitor de actividad y salud"},
-  "imageUrl": {"S": "https://placehold.co/300x300?text=FitTrack"},
+  "imageUrl": {"S": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"},
   "categorySlug": {"S": "electronica"},
   "GSI1PK": {"S": "CATEGORY#electronica"},
   "GSI1SK": {"S": "PRODUCT#Smartwatch FitTrack"}
@@ -178,7 +178,7 @@ $AWS_CMD dynamodb put-item --table-name "$TABLE" --item '{
   "name": {"S": "Mochila de Viaje"},
   "price": {"N": "180000"},
   "description": {"S": "Mochila resistente al agua, 40L capacidad"},
-  "imageUrl": {"S": "https://placehold.co/300x300?text=Mochila"},
+  "imageUrl": {"S": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop"},
   "categorySlug": {"S": "deportes"},
   "GSI1PK": {"S": "CATEGORY#deportes"},
   "GSI1SK": {"S": "PRODUCT#Mochila de Viaje"}
@@ -196,7 +196,7 @@ $AWS_CMD dynamodb put-item --table-name "$TABLE" --item '{
   "name": {"S": "Camiseta Algodon Hombre"},
   "price": {"N": "89000"},
   "description": {"S": "Camiseta 100% algodon, corte regular"},
-  "imageUrl": {"S": "https://placehold.co/300x300?text=Camiseta"},
+  "imageUrl": {"S": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop"},
   "categorySlug": {"S": "ropa"},
   "GSI1PK": {"S": "CATEGORY#ropa"},
   "GSI1SK": {"S": "PRODUCT#Camiseta Algodon Hombre"}

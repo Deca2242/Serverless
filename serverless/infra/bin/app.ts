@@ -11,8 +11,10 @@ const env = {
   region: process.env.CDK_DEFAULT_REGION ?? "us-east-1",
 };
 
+//Stack 1 - Persistencia
 const persistenceStack = new PersistenceStack(app, "MercadoGlobal-Persistence", { env });
 
+//Stack 2 - Core
 const coreStack = new CoreStack(app, "MercadoGlobal-Core", {
   env,
   table: persistenceStack.table,
@@ -20,6 +22,7 @@ const coreStack = new CoreStack(app, "MercadoGlobal-Core", {
 
 coreStack.addDependency(persistenceStack);
 
+//Stack 3 - Api
 const apiStack = new ApiStack(app, "MercadoGlobal-Api", {
   env,
   usersFunction: coreStack.usersFunction,

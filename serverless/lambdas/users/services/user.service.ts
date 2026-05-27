@@ -5,8 +5,9 @@ import {
   CacheKeys,
   TTL,
   del as cacheDel,
+  type CachedResult,
 } from "../../shared/cache";
-import { NotFoundError, ValidationError } from "../../shared/errors";
+import { NotFoundError } from "../../shared/errors";
 import type {
   Address,
   Order,
@@ -14,12 +15,12 @@ import type {
   User,
   UserDashboard,
 } from "../../shared/models";
-import { ORDER_STATUSES } from "../../shared/models";
-import { parseBody } from "../../shared/validation";
+import { parseBody, parseQuery } from "../../shared/validation";
 import {
   AddAddressSchema,
   AddPaymentSchema,
   CreateProfileSchema,
+  OrderStatusQuerySchema,
 } from "../schemas";
 import { UserRepository } from "../repositories/user.repository";
 
@@ -54,21 +55,23 @@ export class UserService {
   }
 
   async getProfile(userId: string): Promise<User> {
-    return cached(CacheKeys.userProfile(userId), TTL.medium, () =>
+    const { value } = await cached(CacheKeys.userProfile(userId), TTL.medium, () =>
       this.fetchProfile(userId),
     );
+    return value;
   }
 
-  async getDashboard(userId: string): Promise<UserDashboard> {
+  async getDashboard(userId: string): Promise<CachedResult<UserDashboard>> {
     return cached(CacheKeys.userDashboard(userId), TTL.medium, () =>
       this.fetchDashboard(userId),
     );
   }
 
   async listAddresses(userId: string): Promise<Address[]> {
-    return cached(CacheKeys.userAddresses(userId), TTL.medium, () =>
+    const { value } = await cached(CacheKeys.userAddresses(userId), TTL.medium, () =>
       this.repo.findAddresses(userId),
     );
+    return value;
   }
 
   async addAddress(userId: string, body?: string): Promise<{ addressId: string }> {
@@ -95,9 +98,10 @@ export class UserService {
   }
 
   async listPayments(userId: string): Promise<Payment[]> {
-    return cached(CacheKeys.userPayments(userId), TTL.medium, () =>
+    const { value } = await cached(CacheKeys.userPayments(userId), TTL.medium, () =>
       this.repo.findPayments(userId),
     );
+    return value;
   }
 
   async addPayment(userId: string, body?: string): Promise<{ paymentId: string }> {
@@ -123,13 +127,15 @@ export class UserService {
     ]);
   }
 
-  async listOrders(userId: string, status?: string): Promise<Order[]> {
-    if (status && !ORDER_STATUSES.includes(status as Order["status"])) {
-      throw new ValidationError(`Invalid status '${status}'`);
-    }
+  async listOrders(
+    userId: string,
+    query: Record<string, string | undefined>,
+  ): Promise<Order[]> {
+    const { status } = parseQuery(OrderStatusQuerySchema, query);
     const key = status
       ? CacheKeys.userOrdersByStatus(userId, status)
       : CacheKeys.userOrders(userId);
-    return cached(key, TTL.short, () => this.fetchOrders(userId, status));
+    const { value } = await cached(key, TTL.short, () => this.fetchOrders(userId, status));
+    return value;
   }
 }

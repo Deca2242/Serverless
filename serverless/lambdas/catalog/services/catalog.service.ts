@@ -8,6 +8,7 @@ import {
   delByPrefix,
   invalidateCatalogCategories,
   invalidateCatalogProduct,
+  type CachedResult,
 } from "../../shared/cache";
 import { NotFoundError } from "../../shared/errors";
 import type { Category, ProductListItem, Stock } from "../../shared/models";
@@ -26,7 +27,7 @@ export class CatalogService {
     return createHash("sha256").update(query.toLowerCase().trim()).digest("hex").slice(0, 16);
   }
 
-  async listCategories(): Promise<Category[]> {
+  async listCategories(): Promise<CachedResult<Category[]>> {
     return cached(CacheKeys.catalogCategories(), TTL.catalogCategories, () =>
       this.repo.scanCategories(),
     );
@@ -39,14 +40,14 @@ export class CatalogService {
     return { slug };
   }
 
-  async listAllProducts(): Promise<ProductListItem[]> {
+  async listAllProducts(): Promise<CachedResult<ProductListItem[]>> {
     return cached(CacheKeys.catalogAllProducts(), TTL.catalogCategoryProducts, async () => {
       const products = await this.repo.scanAllProducts();
       return this.repo.enrichWithStock(products);
     });
   }
 
-  async listProductsByCategory(categorySlug: string): Promise<ProductListItem[]> {
+  async listProductsByCategory(categorySlug: string): Promise<CachedResult<ProductListItem[]>> {
     return cached(
       CacheKeys.catalogCategoryProducts(categorySlug),
       TTL.catalogCategoryProducts,
@@ -58,7 +59,7 @@ export class CatalogService {
   }
 
   async getProduct(slug: string): Promise<ProductListItem> {
-    const product = await cached(CacheKeys.catalogProduct(slug), TTL.catalogProduct, async () => {
+    const { value: product } = await cached(CacheKeys.catalogProduct(slug), TTL.catalogProduct, async () => {
       const found = await this.repo.findProduct(slug);
       if (!found) throw new NotFoundError(`Product '${slug}'`);
       const [enriched] = await this.repo.enrichWithStock([found]);
@@ -67,7 +68,7 @@ export class CatalogService {
     return product;
   }
 
-  async search(query: string): Promise<ProductListItem[]> {
+  async search(query: string): Promise<CachedResult<ProductListItem[]>> {
     const trimmed = query.trim();
     const hash = this.searchHash(trimmed);
     return cached(CacheKeys.catalogSearch(hash), TTL.catalogSearch, async () => {
@@ -77,7 +78,7 @@ export class CatalogService {
   }
 
   async getStock(slug: string): Promise<Stock> {
-    const stock = await cached(CacheKeys.catalogStock(slug), TTL.catalogStock, async () => {
+    const { value: stock } = await cached(CacheKeys.catalogStock(slug), TTL.catalogStock, async () => {
       const found = await this.repo.findStock(slug);
       if (!found) throw new NotFoundError(`Stock for product '${slug}'`);
       return found;

@@ -1,6 +1,6 @@
 import { TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 
-import { getDocClient, TABLE_NAME, Keys } from "../../shared/dynamodb";
+import { getDocClient, TABLE_NAME, Keys, normalizeOrderDate, gsi1UserStatusKey } from "../../shared/dynamodb";
 import type { CartItem } from "../../shared/models";
 
 export interface CheckoutInput {
@@ -15,7 +15,7 @@ export interface CheckoutInput {
 export class CheckoutRepository {
   async createOrderWithStockDecrement(input: CheckoutInput): Promise<void> {
     const { orderId, userId, date, shippingAddress, items, total } = input;
-    const dateZ = date.substring(0, 19) + "Z";
+    const dateZ = normalizeOrderDate(date);
 
     await getDocClient().send(
       new TransactWriteCommand({
@@ -42,7 +42,7 @@ export class CheckoutRepository {
                 status: "pending",
                 total,
                 shippingAddress,
-                GSI1PK: `USER#${userId}#STATUS#pending`,
+                GSI1PK: gsi1UserStatusKey(userId, "pending"),
                 GSI1SK: dateZ,
               },
             },

@@ -5,7 +5,7 @@ import {
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 
-import { getDocClient, TABLE_NAME, Keys } from "../../shared/dynamodb";
+import { getDocClient, TABLE_NAME, Keys, GSI1_NAME, gsi1UserStatusKey } from "../../shared/dynamodb";
 import type { Address, Order, Payment, User } from "../../shared/models";
 import {
   itemToAddress,
@@ -123,10 +123,10 @@ export class UserRepository {
     const res = await getDocClient().send(
       new QueryCommand({
         TableName: TABLE_NAME,
-        IndexName: "GSI1-UserStatus-Date",
+        IndexName: GSI1_NAME,
         KeyConditionExpression: "GSI1PK = :gsi1pk",
         ExpressionAttributeValues: {
-          ":gsi1pk": `USER#${userId}#STATUS#${status}`,
+          ":gsi1pk": gsi1UserStatusKey(userId, status),
         },
         ScanIndexForward: false,
       }),

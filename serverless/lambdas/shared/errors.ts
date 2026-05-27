@@ -38,17 +38,22 @@ export class ServiceUnavailableError extends AppError {
 
 export function buildErrorResponse(error: unknown): {
   statusCode: number;
+  headers: Record<string, string>;
   body: string;
 } {
+  const headers = { "Content-Type": "application/json" };
+
   if (error instanceof AppError) {
     return {
       statusCode: error.statusCode,
+      headers,
       body: JSON.stringify({ error: error.message }),
     };
   }
   console.error("Unexpected error:", error);
   return {
     statusCode: 500,
+    headers,
     body: JSON.stringify({ error: "Internal server error" }),
   };
 }

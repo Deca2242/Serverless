@@ -63,6 +63,7 @@ services:
       AWS_SECRET_ACCESS_KEY: test
       CDK_DEFAULT_ACCOUNT: "000000000000"
       CDK_DEFAULT_REGION: us-east-1
+      CACHE_DEBUG: "true"
     depends_on:
       floci:
         condition: service_healthy
