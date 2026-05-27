@@ -1,0 +1,21 @@
+node_modules/
+dist/
+skills-lock.json
+build/
+out/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
+.vite/
+.vite-temp/
+*.log                    # Logs
+npm-debug.log*            # npm logs
+yarn-debug.log*           # Yarn logs
+yarn-error.log*           # Yarn logs
+*.log
+*.log.gz
+
+
+
